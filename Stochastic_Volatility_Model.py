@@ -16,7 +16,6 @@ import warnings; warnings.simplefilter('ignore')  # hide warnings
 #%%
 # INITIALIZE
 seed = 135
-# seed = 1350
 np.random.seed(seed)
 
 #initializing parameters
@@ -32,9 +31,7 @@ sigma = 1
 beta = 0.5
 
 
-# % Linear–quadratic–Gaussian model parameters
 a = rho # rho
-# b = 1 # tau
 b = sigma
 c = 0
 d = beta
@@ -51,10 +48,13 @@ for t in range(1, T):
 plt.plot(true_x)
 plt.scatter(range(T),y, color="orange")
 plt.xlabel("time n")
-# plt.ylabel(r"$Y_n$")
-# plt.legend()
+plt.ylabel(r"$Y_n$")
+plt.legend()
 
 #%% resampling function
+
+# These functions are imported from FilterPy 1.4.4
+
 def multinomial_resample(weights):
     """ This is the naive form of roulette sampling where we compute the
     cumulative sum of the weights and then use binary search to select the
@@ -119,7 +119,7 @@ def residual_resample(weights):
 
     return indexes
 
-#%% N=500
+#%% simulate for N=500
 N=500
 
 # filtering approx
@@ -146,8 +146,6 @@ log_w[:, 0] = list(map(lambda x_u: stats.norm.pdf(y[0], 0, beta * np.exp(x_u)), 
 qq[:, 0] = log_w[:, 0]
 q[:, 0] = qq[:, 0] / sum(qq[:, 0])
 
-# log_rec[0] = np.log(np.mean(qq[:, 0])) + offset
-
 # resample
 I[:, 0] = multinomial_resample(q[:, 0])
 I = I.astype(int)
@@ -156,24 +154,20 @@ xt[:, 0] = x[:, 0].copy()
 
 for t in range(T-1):
     w = b * np.random.normal(size=N)
-    xu[:, t+1] = a*x[:,t]+w
-    
+    xu[:, t+1] = a*x[:,t] + w
     d_t = beta * np.exp(x[:,t]/2)
 
     # compute weights and normalise
     qq[:,t+1] = list(map(lambda d: stats.norm.pdf(y[t+1], 0, d), d_t))
     q[:, t + 1] = qq[:, t + 1] / sum(qq[:, t + 1])
     I[:, t+1] = multinomial_resample(q[:, t+1])
-
-
     I = I.astype(int)
-
     #     % resampling
     x[:, t + 1] = xu[I[:, t+1], t + 1].copy()  
     xt[:, t+1] = x[:,t+1].copy()
     x[:, :t] = x[I[:, t+1], :t].copy()
     
-#%% FFBSa
+#%% FFBSa algorithm
 nn = N
 idx = np.zeros((nn, T), dtype=int)
 idx[:, -1] = multinomial_resample(q[:, -1])
@@ -193,16 +187,13 @@ paths = np.array(paths)
 fig1, axs = plt.subplots(3, 1,figsize=(8,10))
 for i, n in enumerate([10, 50, 90]):
     print(i, n)
-    # axs[i].figure(figsize=(8, 4))
     sns.distplot(ax=axs[i], x=xt[:,n], hist = False, 
-                 # hist_kws={'weights': q[:,n]},
                  kde = True,
                      kde_kws = {'weights': q[:,n],'linewidth': 1, 
                                 'label': "(a) filter density"})
     sns.distplot(ax=axs[i], x=x[:,n], hist = False, 
                  kde = True,
                      kde_kws = {'linewidth': 1, 'label': "(a) smoothing density"})
-    # plt.hist(x[:,n], density=True)
     sns.distplot(ax=axs[i], x=paths[n], hist = False, 
                  kde = True,
                      kde_kws = {'linewidth': 1, 'label': "(b) FFBSa density"})
@@ -219,7 +210,7 @@ plt.savefig(f"plots/q2_1_2_N{N}.pdf")
 
 
 
-#%% N=50
+#%% simulation for N=50
 N=50
 
 # filtering approx
@@ -240,13 +231,9 @@ log_rec=np.zeros(T)
 
 # % INIT: SAMPLE FROM THE PRIOR:
 xu[:,0] = np.random.normal(0,1,size=N)
-
 log_w[:, 0] = list(map(lambda x_u: stats.norm.pdf(y[0], 0, beta * np.exp(x_u)), xu[:,0])) 
-
 qq[:, 0] = log_w[:, 0]
 q[:, 0] = qq[:, 0] / sum(qq[:, 0])
-
-# log_rec[0] = np.log(np.mean(qq[:, 0])) + offset
 
 # resample
 I[:, 0] = multinomial_resample(q[:, 0])
@@ -257,15 +244,12 @@ xt[:, 0] = x[:, 0].copy()
 for t in range(T-1):
     w = b * np.random.normal(size=N)
     xu[:, t+1] = a*x[:,t]+w
-    
     d_t = beta * np.exp(x[:,t]/2)
 
     # compute weights and normalise
     qq[:,t+1] = list(map(lambda d: stats.norm.pdf(y[t+1], 0, d), d_t))
     q[:, t + 1] = qq[:, t + 1] / sum(qq[:, t + 1])
     I[:, t+1] = multinomial_resample(q[:, t+1])
-
-
     I = I.astype(int)
 
     #     % resampling
@@ -340,7 +324,7 @@ plt.savefig(f"plots/q2_1_2__N{N}.pdf")
 
 
 
-#%% q2.1.3 SIR N=100
+#%% 2.1.3 SIR N=100
 N=100
 # seed = 510
 seed = 1350
@@ -359,22 +343,14 @@ I = np.zeros((N,T))
 xt = np.zeros((N,T))
 
 
-# log_rec=np.zeros(T)
-
 # % INIT: SAMPLE FROM THE PRIOR:
 xu[:,0] = np.random.normal(0,1,size=N)
 
 log_w[:, 0] = list(map(lambda x_u: stats.norm.pdf(y[0], 0, beta * np.exp(x_u)), xu[:,0])) 
-# for i in range(N):
-#     qq[i, 0] = stats.norm.pdf(y[0], m)
-    
 # normalize
 qq[:, 0] = log_w[:, 0]
 q[:, 0] = qq[:, 0] / sum(qq[:, 0])
-
-
 I[:, 0] = multinomial_resample(q[:, 0])
-
 I = I.astype(int)
 x[:, 0] = xu[I[:, 0], 0].copy()
 xt[:, 0] = x[:, 0].copy()
@@ -385,7 +361,6 @@ xt[:, 0] = x[:, 0].copy()
 for t in range(T-1):
     w = b * np.random.normal(size=N)
     xu[:, t+1] = a*x[:,t]+w
-    
     d_t = beta * np.exp(x[:,t]/2)
 
     # compute weights and normalise
@@ -400,7 +375,7 @@ for t in range(T-1):
 
     
     
-    #%% q2.1.3 FFBSa
+    #%% 2.1.3 FFBSa
     
     # FFBSa
 nn = N
@@ -422,7 +397,7 @@ paths = np.array(paths)
 # plt.plot(true_x, label="true", color="red")
 
 
-#%% q2.1.3 a) plot
+#%% 2.1.3 a) plot
 
 plt.plot(true_x, label="true", color="black", 
          alpha = 0.7,linestyle = "--")
@@ -437,7 +412,7 @@ plt.title("Filter/Smoothing mean")
 plt.legend(prop={'size': 9})
 plt.savefig("plots/q2_1_3_a.pdf")
 
-#%% q2.1.3 b)
+#%% 2.1.3 b)
 plt.plot((sum(q*(xt*xt))-sum(q*xt)**2)/range(T), label="(a) filter")
 plt.plot((sum(q*(x*x))-(sum(q*x)**2))/range(T), label="(a) smoother")
 plt.plot((np.var(paths, 1))/range(T), label="(b) FFBSa")
@@ -446,10 +421,10 @@ plt.xlabel("time n")
 plt.ylabel("Variance")
 plt.title("Filter/Smoothing variance")
 plt.legend(prop={'size': 10})
-# plt.savefig("plots/q2_1_3_b.pdf")
+# plt.savefig("plots/2_1_3_b.pdf")
 
 
-#%% q2.1.4
+#%% 2.1.4
 # bias
 plt.plot(np.abs(sum(q*xt)-np.mean(sum(q*x))),label="(a)filter")
 plt.plot(np.abs(sum(q*x)-np.mean(sum(q*xt))),label="(a)smoother")
@@ -458,7 +433,7 @@ plt.plot(np.abs(np.mean(paths, axis=1) - np.mean(np.mean(paths, axis=1))),
 plt.legend()
 
 
-#%% q2.2
+#%% 2.2
 
 
 def un_log_norm_pdf(y, x):
@@ -529,42 +504,11 @@ def volatility_SIR(RHO=0.91, N=50):
         x[:, :t] = x[It, :t].copy()
     
     return(x)
-#%%
-r = 1
-
-xr = volatility_SIR(RHO = r, N=N)
-# print(xr[:, 10])
-
-grads = np.zeros(N)
-for i in range(N):
-#         s = xr[:, p-1]*(xr[:, p] - r_k * xr[:, p-1])
-#         grads += s
-    for p in range(1,T):
-        s = xr[i, p-1] * (xr[i, p] - r*xr[i,p-1])
-#         print(s)
-        grads[i] += s
-
-grad = np.mean(grads)
-grad/T
-
-# xr[i, p-1] * (xr[i, p] - 0.8*xr[i,p-1])
-
-#%%
-# gradient ascent
-
-step = 0.001
-rho0_1 = 0.5
-rho0_2 = -1
-rho0_3 = 1.5
-num_iter = 50
-N=50
-
-rho_list_1 = np.zeros(num_iter)
-rho_list_1[0] = rho0_1
 
 #%%
 
 def gradient_asc(rho0, step=0.001):
+    r = 1
     num_iter = 20
     N = 100
     rho_list = np.zeros(num_iter)
@@ -597,7 +541,6 @@ def gradient_asc(rho0, step=0.001):
 #%%
 rho_list_1 = gradient_asc(0.5)
 rho_list_2 = gradient_asc(-1)
-#%%
 rho_list_3 = gradient_asc(1.5)
 #%%
 # print(np.mean(rho_list_1[:-10]))
@@ -606,6 +549,7 @@ print(rho_list_2[-1])
 print(rho_list_3[-1])
 
 #%%
+step = 0.001
 
 plt.plot(rho_list_1, 
          label=r"$\rho_0=0.5,\rho_{20}=0.8692$")
