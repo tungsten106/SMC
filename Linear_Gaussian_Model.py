@@ -34,7 +34,6 @@ sigma = 0.5
 
 
 # % Linear–quadratic–Gaussian model parameters
-
 initVar = 1 #initial variance
 v = np.random.normal(size=T)
 w = np.random.normal(size=T)
@@ -48,11 +47,11 @@ for t in range(1, T):
 plt.plot(true_x)
 plt.scatter(range(T),y, color="orange")
 plt.xlabel("time n")
-# plt.ylabel(r"$Y_n$")
+plt.ylabel(r"$Y_n$")
 plt.title(r"$x^*_{0:T}$")
-# plt.legend()
+plt.legend()
 
-#%% q3.1 Kalman filter
+#%% 3.1 Kalman filter
 # % Kalman filter to generate recursive likelihood p(y0:T)
 
 def KalmanFilter(rho_1, tau2_1):
@@ -97,10 +96,7 @@ def KalmanFilter(rho_1, tau2_1):
     # plt.plot(np.cumsum(np.log(rec_true)))
     # plt.title(r"$p_\theta(y_{0:T})$ true log-likelihood from Kal")
     
-#%% q3.1 ideal MCMC
-
-# def inverse_gamma_unnormalised(x, a, b):
-#     return (x ** (-a - 1)) * np.exp(-(b / x))
+#%% 3.1 ideal MCMC
 
 def log_joint_prior(r, t2):
     return(stats.uniform.logpdf(r, loc=-1, scale=2) + stats.invgamma.logpdf(t2, 1))
@@ -152,11 +148,9 @@ for i in range(rep):
 
                     
 print(f"Done! Total run time: {toc-tic}")
-# RATIO_KF = RATIO
-# RHO_KF = RHO
-# TAU2_KF = TAU2
 
-#%% q3.1 plots
+
+#%% 3.1 plots
 
 fig2, axs = plt.subplots(1, 2, figsize=(9,4))
 sns.distplot(ax=axs[0], x=RHO_KF, hist = True, kde = True,
@@ -181,9 +175,7 @@ axs[1].legend()
 
 plt.savefig("plots/q3_1.pdf")
 
-#%% q3.1 diagnostics
-from statsmodels.graphics.tsaplots import plot_acf
-# plot_acf(TAU2_KF, lags=50)
+#%% 3.1 diagnostics
 
 print(np.mean(RATIO_KF))
 plt.figure(figsize=(6, 2), dpi=80)
@@ -206,7 +198,7 @@ plt.savefig("plots/q3_1_trace.pdf")
 
 
 
-#%% q3.2 a) SIR
+#%% 3.2 a) SIR
 def un_log_norm_pdf(y, x):
     return(-0.5*np.log(2*np.pi)-np.log(0.5)-(y-x)**2/(0.5**2)/2)
 
@@ -258,7 +250,7 @@ def SMC_SIR(r, t2):
         
     return(log_rec)
 
-#%% q3.2 a)
+#%% 3.2 a)
 
 
 # seed = 18411
@@ -323,7 +315,7 @@ for i in range(10000, 20000):
 toc = time.time()                
 print(f"Done! Total run time: {toc-tic}")
 
-#%% q3.2 a) plot
+#%% 3.2 a) plot
 rep2 = 5000
 # RHO_PF = RHO
 # TAU2_PF = TAU2
@@ -413,7 +405,7 @@ plt.savefig("plots/q3_2_a_trace.pdf")
 # axs[1].plot(TAU2_KF)
 # RHO[2000:6000]
 
-#%% q3.2 d)
+#%% 3.2 d)
 rho_pred = np.mean(RHO_PF[:rep2])
 tau2_pred = np.mean(TAU2_PF[:rep2])
 print(rho_pred)
@@ -467,7 +459,7 @@ for t in range(T-1):
     x[:, :t] = x[It, :t].copy()
     
     #%%
-    #%% q3.2 d) plots
+    #%% 3.2 d) plots
 plt.plot(true_x, "--", color="black", label=r"$x^*_{0:T}$")
 plt.plot(sum(q*xu), label=r"$E[X_{0:T}|Y_{0:T}]$")
 
@@ -535,7 +527,7 @@ plt.fill_between(range(T), (RecLikeMean-ci), (RecLikeMean+ci), color='b', alpha=
 
 
 
-#%% q3.2 d) joint plot
+#%% 3.2 d) joint plot
 fig, axs = plt.subplots(1,2, figsize=(12,4))
 axs[0].plot(true_x, "--", color="black", label=r"$x^*_{0:T}$")
 axs[0].plot(sum(q*xu), label=r"$E[X_{0:T}|Y_{0:T}]$")
@@ -561,7 +553,7 @@ axs[1].set_xlabel("time n")
 axs[1].legend()
 plt.savefig("plots/q3_2_d_together.pdf")
 
-#%% q3.4 a)
+#%% 3.4 a)
 
 # N = 100 # particle size
 # a = rho
@@ -712,7 +704,7 @@ plt.legend()
 
 
 
-#%% q3.4.a
+#%% 3.4.a
 fig1, axs = plt.subplots(1, 2, figsize=(10,4))
 
 axs[0].plot(np.median(rhosu,axis=0),
@@ -745,7 +737,7 @@ plt.savefig("plots/q3_4_a_tmp4.pdf")
 # plt.plot(np.median(tau2s[:, 20:],axis=0))
 # plt.fill_between(range(20, T), np.quantile(tau2s[:, 20:], 0.025, axis=0), 
 #                  np.quantile(tau2s[:, 20:], 0.975, axis=0), color='b', alpha=.1)
-#%% q3.4.b
+#%% 3.4.b
 plt.plot(true_x, "--", color="black", label=r"$x^*_{0:T}$")
 plt.plot(sum(q*xu), label=r"$E[X_{0:T}|Y_{0:T}]$")
 
